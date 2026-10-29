@@ -183,9 +183,13 @@
                         <!-- transparent_group prop: no frame around the buttons, as in the mockup -->
                         <option output="html" option_name="transparent_group" value="true"/>
                         <button action="exit" label="Annuler"/>
-                        <!-- No save_path in <config>: saves through the core's generic form/frame/save -->
-                        <button action="save" id="save" label="Enregistrer" class="btn-primary pull-right">
+                        <!-- No save_path in <config>: saves through the core's generic form/frame/save.
+                             dataset: only the patient record is sent (not the read-only list datasets).
+                             redirection, played once the save succeeded: reloads this form without id_data,
+                             so the form is empty again and the list and its count are reloaded -->
+                        <button action="save" id="save" label="Enregistrer" class="btn-primary pull-right" dataset="patient">
                             <option output="html" option_name="fa" value="fa-floppy-o"/>
+                            <redirection url="form/frame/get/file/form.demo_ds" type="frame"/>
                         </button>
                     </group>
                 </box>
