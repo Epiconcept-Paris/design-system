@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<varset name="patient" prefix="patient" type="std" label="Patient">
+    <!-- Identité -->
+    <var uid="9" id="prenom" type="string" mandatory="true" default_label="Prénom" default_short_label="Prénom">
+        <string length="50"/>
+    </var>
+    <var uid="1" id="nom" type="string" mandatory="true" default_label="Nom de naissance"
+         default_short_label="Nom">
+        <string length="50"/>
+    </var>
+    <var uid="10" id="nom_usuel" type="string" mandatory="false" default_label="Nom usuel"
+         default_short_label="Nom usuel">
+        <string length="50"/>
+    </var>
+    <var uid="5" id="ddn" type="date" mandatory="true" default_label="Date de naissance" default_short_label="DDN">
+        <date min="1900-01-01"/>
+    </var>
+    <var uid="11" id="sexe" type="fkey_dico" mandatory="true" default_label="Sexe" default_short_label="Sexe">
+        <fkey_dico dico_name="sexe"/>
+    </var>
+    <!-- Multiple choice: stored in an external link table (fkey_dico_ext) -->
+    <var uid="12" id="langues" type="fkey_dico_ext" mandatory="false" default_label="Langues parlées"
+         default_short_label="Langues">
+        <fkey_dico_ext dico_name="langues"/>
+    </var>
+
+    <!-- Coordonnées -->
+    <var uid="13" id="adresse" type="string" mandatory="false" default_label="Adresse" default_short_label="Adresse">
+        <string length="255"/>
+    </var>
+    <var uid="14" id="cp" type="string" mandatory="false" default_label="Code postal" default_short_label="CP">
+        <string length="10"/>
+    </var>
+    <var uid="15" id="ville" type="string" mandatory="false" default_label="Ville" default_short_label="Ville">
+        <string length="100"/>
+    </var>
+    <var uid="16" id="pays" type="fkey_dico" mandatory="false" default_label="Pays" default_short_label="Pays">
+        <fkey_dico dico_name="pays"/>
+    </var>
+    <var uid="17" id="tel" type="string" mandatory="false" default_label="Téléphone" default_short_label="Tél.">
+        <string length="20"/>
+    </var>
+    <var uid="2" id="email" type="string" mandatory="false" default_label="Courriel" default_short_label="Courriel">
+        <string length="200" validator="email"/>
+    </var>
+
+    <!-- Informations complémentaires -->
+    <var uid="8" id="commentaire" type="string" mandatory="false" default_label="Commentaire"
+         default_short_label="Commentaire">
+        <string length="500"/>
+    </var>
+    <var uid="18" id="deces" type="boolean" mandatory="false" default_label="Patient décédé"
+         default_short_label="Décédé"/>
+    <var uid="19" id="dod" type="date" mandatory="false" default_label="Date de décès" default_short_label="DDD">
+        <date min="1900-01-01"/>
+    </var>
+</varset>

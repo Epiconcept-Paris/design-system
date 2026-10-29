@@ -1577,7 +1577,7 @@ CREATE TABLE `prjc_user_data` (
   `pin_access_delegation` varchar(4) DEFAULT NULL,
   `sys_last_connection_date` date DEFAULT NULL,
   `sys_last_mfa_date` date DEFAULT NULL,
-  `flagged_user` tinyint(1) DEFAULT NULL
+  `flagged_user` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id_data`),
   KEY `id_owner` (`id_owner`),
   KEY `sys_last_mod_user` (`sys_last_mod_user`),
@@ -1592,7 +1592,7 @@ CREATE TABLE `prjc_user_data` (
 LOCK TABLES `prjc_user_data` WRITE;
 /*!40000 ALTER TABLE `prjc_user_data` DISABLE KEYS */;
 INSERT INTO `prjc_user_data` VALUES
-(1,2,NULL,NULL,NULL,2,'user-root','Administrator',NULL,'fake@mail.com',43,'2025-11-06','cc09f8b475bd90b147558407f716ccb13cd3442f7741ee33018ca7d7ba31dc1f:9ec72c52e27d5f79ad7b6e34d8d01cbde54fa806',NULL,NULL,NULL,49,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+(1,2,NULL,NULL,NULL,2,'user-root','Administrator',NULL,'fake@mail.com',43,'2025-11-06','cc09f8b475bd90b147558407f716ccb13cd3442f7741ee33018ca7d7ba31dc1f:9ec72c52e27d5f79ad7b6e34d8d01cbde54fa806',NULL,NULL,NULL,49,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `prjc_user_data` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1684,7 +1684,7 @@ CREATE TABLE `prjc_user_deleted` (
   `pin_access_delegation` varchar(4) DEFAULT NULL,
   `sys_last_connection_date` date DEFAULT NULL,
   `sys_last_mfa_date` date DEFAULT NULL,
-  `flagged_user` tinyint(1) DEFAULT NULL
+  `flagged_user` tinyint(1) DEFAULT NULL,
   KEY `id_data` (`id_data`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
