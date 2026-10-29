@@ -1,0 +1,195 @@
+# ============================================================================
+# Docker Compose - Voo4 Project Application Stack (Local Development)
+# ============================================================================
+# Ce fichier configure l'environnement complet de développement local avec :
+#  - Base de données MariaDB
+#  - Interface d'administration PhpMyAdmin
+#  - Application PHP-FPM (Voozanoo4)
+#  - Serveur Web Apache
+#  - Proxy inverse Traefik (pour le routage des URLs)
+# ============================================================================
+
+# Configuration réseau
+# Utilise un réseau externe 'local-dev-stack' partagé entre plusieurs projets
+networks:
+  default:
+    name: local-dev-stack
+    external: true
+
+# ============================================================================
+# VOLUMES DOCKER
+# ============================================================================
+volumes:
+  designsystem-mariadb-logs:
+
+
+services:
+
+  # ============================================================================
+  # SERVICE: Base de Données MariaDB
+  # ============================================================================
+  # Service de base de données MariaDB utilisé par l'application Voozanoo4
+  designsystem-mariadb:
+    build: ./docker/mariadb
+    container_name: designsystem-mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - designsystem-mariadb-logs:/var/log/mysql:rw
+
+  # ===========================================================================
+  # SERVICE: MariaDB Log Tailer
+  # ===========================================================================
+  # Service qui capture les logs mariadb dans un volume pour les renvoyer en sortie stdout de Docker et ainsi les rendre visibles dans Dozzle.
+  # RAISON : MariaDB 11.x ne permet pas d'écrire les logs directement en stdout/stderr
+  designsystem-mariadb-log-tailer:
+    image: busybox
+    container_name: designsystem-mariadb-log-tailer
+    volumes:
+      - designsystem-mariadb-logs:/var/log/mysql:ro
+    depends_on:
+      - designsystem-mariadb
+    command: >
+      sh -c "
+      tail -F /var/log/mysql/error.log | sed 's/^/[ERROR] /' &
+      tail -F /var/log/mysql/mysql.log | sed 's/^/[GENERAL] /' &
+      tail -F /var/log/mysql/mysql-slow.log | sed 's/^/[MYSQL-SLOW] /' &
+      wait
+      "
+
+  # ============================================================================
+  # SERVICE: PhpMyAdmin (Interface Web Base de Données)
+  # ============================================================================
+  # Interface d'administration web pour la base de données MariaDB
+  # Accessible via: http://localhost/designsystem-phpmyadmin/
+  designsystem-phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: designsystem-phpmyadmin
+    environment:
+      PMA_HOST: designsystem-mariadb                                    # Connexion à la BDD
+      MYSQL_ROOT_PASSWORD: root                                  # Credentials
+      PMA_ABSOLUTE_URI: http://localhost/designsystem-phpmyadmin/     # URI absolue (préfixe /designsystem-phpmyadmin/)
+    labels:
+      # ============================================================
+      # TRAEFIK: Configuration du routage et des middlewares
+      # ============================================================
+      traefik.enable: true
+      # Règle de routage: accepte /designsystem-phpmyadmin + tout chemin optionnel
+      traefik.http.routers.designsystem-phpmyadmin.rule: PathRegexp(`^/designsystem-phpmyadmin(/.*)?$`)
+      # Priorité très haute pour s'exécuter avant les autres règles
+      traefik.http.routers.designsystem-phpmyadmin.priority: 100000
+      traefik.http.routers.designsystem-phpmyadmin.entrypoints: web
+      traefik.http.routers.designsystem-phpmyadmin.service: designsystem-phpmyadmin
+      traefik.http.services.designsystem-phpmyadmin.loadbalancer.server.port: 80
+      # Middlewares appliqués dans l'ordre:
+      #  1. designsystem-phpmyadmin-redirect: force le trailing slash
+      #  2. designsystem-phpmyadmin-stripprefix: retire le préfixe /designsystem-phpmyadmin
+      traefik.http.routers.designsystem-phpmyadmin.middlewares: designsystem-phpmyadmin-redirect,designsystem-phpmyadmin-stripprefix
+      # MIDDLEWARE 1: Force le trailing slash
+      # /designsystem-phpmyadmin -> /designsystem-phpmyadmin/ (301 redirect)
+      traefik.http.middlewares.designsystem-phpmyadmin-redirect.redirectregex.regex: ^(.*/designsystem-phpmyadmin)$$
+      traefik.http.middlewares.designsystem-phpmyadmin-redirect.redirectregex.replacement: $${1}/
+      traefik.http.middlewares.designsystem-phpmyadmin-redirect.redirectregex.permanent: true
+      # MIDDLEWARE 2: Retire le préfixe /designsystem-phpmyadmin
+      # /designsystem-phpmyadmin/index.php -> /index.php (pour l'application)
+      traefik.http.middlewares.designsystem-phpmyadmin-stripprefix.stripprefix.prefixes: /designsystem-phpmyadmin
+
+  # ============================================================================
+  # SERVICE: PHP-FPM (Application Voozanoo4)
+  # ============================================================================
+  # Serveur PHP FastCGI Process Manager
+  # Exécute le code PHP de l'application Voozanoo4
+  # Communication avec Apache via le protocole FastCGI
+  designsystem-fpm:
+    build: ./docker/php-fpm-voozanoo4
+    container_name: designsystem
+    # Note: Les fichiers du code applicatif sont montés via docker-compose.override.yml
+
+  # ============================================================================
+  # SERVICE: Serveur Web Apache
+  # ============================================================================
+  # Serveur HTTP frontend qui:
+  #  1. Reçoit les requêtes HTTP/HTTPS du client
+  #  2. Effectue les redirections et transformations d'URLs via Traefik
+  #  3. Transmet les requêtes PHP au container PHP-FPM
+  #  4. Sert les assets statiques (libs/, libs_ext/)
+  # 
+  # FLOW DE REQUÊTE UTILISATEUR:
+  # 1. Utilisateur accède à: http://localhost/designsystem/myproject
+  # 2. Router designsystem-project accepte cette requête (Priority normale)
+  # 3. Middleware designsystem-stripprefix retire le préfixe /designsystem
+  # 4. Apache reçoit /myproject/index.php
+  # 5. Apache transmet au PHP-FPM qui retourne le HTML/JSON
+  # 
+  # CAS PARTICULIER (si app === project):
+  # 1. Utilisateur accède à: http://localhost/myproject
+  # 2. Router designsystem-redirect intercepte cette requête (Priority: 1000)
+  # 3. Middleware designsystem-redirect-root redirige vers /designsystem/myproject (302)
+  # 4. Nouvelle requête pour /designsystem/myproject/index.php
+  # 5. Idem que le cas normal
+  # 
+  # ASSETS STATIQUES (images, css, js):
+  # - http://localhost/designsystem/libs/... -> /libs/... (après stripprefix) -> Apache les sert
+  # - http://localhost/designsystem/libs_ext/... -> /libs_ext/... (après stripprefix) -> Apache les sert
+  designsystem-apache:
+    build: ./docker/apache2
+    container_name: designsystem-apache
+    environment:
+      FPM_CONTAINER_NAME: designsystem
+    labels:
+      # ============================================================
+      # TRAEFIK: Activation et configuration du routage
+      # ============================================================
+      traefik.enable: true
+      # Expose ce container à Traefik (reverse proxy)
+
+      # ============================================================
+      # ROUTER 1 (optionnel): designsystem-redirect (Priorité HAUTE = 1000)
+      # ============================================================
+      # OBJECTIF: Rediriger /myproject vers /designsystem/myproject (cas où l'application et le projet ont le même nom)
+      # CONTEXTE: Si l'application et le projet ont le même nom, l'utilisateur
+      # accède simplement via /monapp au lieu de /monapp/monapp
+      # RÈGLE: Accepte ces variantes (pas de contenu après /myproject):
+      #  - /myproject (pas de slash)
+      #  - /myproject/ (avec slash)
+      #  - /myproject/#section (avec dièse pour les ancres)
+      traefik.http.routers.designsystem-redirect.rule: PathRegexp(`^/myproject/?$|^/myproject/#`)
+      traefik.http.routers.designsystem-redirect.priority: 1000
+      traefik.http.routers.designsystem-redirect.entrypoints: web
+      traefik.http.routers.designsystem-redirect.middlewares: designsystem-redirect-root
+      # MIDDLEWARE: Redirection RegEx
+      # Capture /myproject ou /myproject/ et redirige vers /designsystem/myproject
+      traefik.http.middlewares.designsystem-redirect-root.redirectregex.regex: ^/myproject/?(.*)$
+      traefik.http.middlewares.designsystem-redirect-root.redirectregex.replacement: /designsystem/myproject
+      traefik.http.middlewares.designsystem-redirect-root.redirectregex.permanent: false
+      # (302 redirect = temporaire, ne sera pas cachée par les navigateurs)
+      traefik.http.routers.designsystem-redirect.service: designsystem
+
+      # ============================================================
+      # ROUTER 2 (obligatoire): designsystem-project (Priorité normale)
+      # ============================================================
+      # OBJECTIF: Router toutes les requêtes /designsystem/* (application level)
+      # 
+      # RÈGLE: Accepte /designsystem suivi de n'importe quel chemin:
+      #  - /designsystem/myproject
+      #  - /designsystem/myproject/index.php
+      #  - /designsystem/libs/jquery.js
+      #  - /designsystem/libs_ext/bootstrap.css
+      #  - /designsystem/api/dataset
+      traefik.http.routers.designsystem-project.rule: PathRegexp(`^/designsystem(/.*)?$`)
+      traefik.http.routers.designsystem-project.entrypoints: web
+      traefik.http.routers.designsystem-project.service: designsystem
+      traefik.http.services.designsystem.loadbalancer.server.port: 80
+      # MIDDLEWARE: Strip Prefix
+      # Retire le préfixe /designsystem pour que l'application le reçoive:
+      #  - Requête: /designsystem/myproject/index.php
+      #  - Après: /myproject/index.php (pour l'app)
+      traefik.http.middlewares.designsystem-stripprefix.stripprefix.prefixes: /designsystem
+      traefik.http.routers.designsystem-project.middlewares: designsystem-stripprefix@docker
+      
+    # ================================================================
+    # VOLUMES: Montage des fichiers applicatifs
+    # ================================================================
+    # Les montages de dossiers (code applicatif, libs Voozanoo/Zend)
+    # sont définis dans docker-compose.override.yml pour s'adapter à
+    # chaque environnement de développement (WSL, Linux, macOS, etc.)

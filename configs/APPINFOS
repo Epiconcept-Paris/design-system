@@ -1,0 +1,18 @@
+{
+  "PACKAGING":{
+    "INF_PACKAGE":"voo4skeleton",
+    "INF_VERSION":"1.0",
+    "INF_PRIORITY":"optional",
+    "INF_ARCHITECTURE":"all",
+    "INF_DEPENDS":"voozanoo4-2.26",
+    "INF_SECTION":"base",
+    "INF_MAINTENER":"team_fwk",
+    "INF_DESCRIPTION":"Application dedicated to application initialization",
+    "INF_HOMEPAGE":"https://epiconcept-paris.github.io/epidocs/installation_d'une_nouvelle_application_voozanoo_4.html",
+    "INF_MAILTO":"",
+    "INF_FITNET":""
+  },
+  "DEPENDENCIES":{
+    "VOOZANOO4":"2.26"
+  }
+}

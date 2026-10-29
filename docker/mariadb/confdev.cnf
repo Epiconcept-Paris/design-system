@@ -1,0 +1,76 @@
+[mysqld]
+
+# ======================================================
+# Version et compatibilité
+# ======================================================
+# MariaDB >= 10.6
+# MySQL >= 5.7
+# Documentation : https://epiconcept.atlassian.net/servicedesk/customer/portal/83/topic/02f5f631-dc16-4bf2-86fd-e62f82acc30e/article/1915682817
+# ======================================================
+
+# ======================================================
+# Configuration du serveur et logs binaires
+# ======================================================
+server-id = 1
+
+binlog_format = STATEMENT
+log_bin = /var/log/mysql/mysql-bin.log
+# expire_logs_days = 10                 # ⚠️ Déprécié à partir de MariaDB 10.6, remplacé par "binlog_expire_logs_seconds"
+binlog_expire_logs_seconds = 864000     # 10 jours. Calcul => 10 jours * 24 hours * 60 minutes * 60 seconds = 864000
+
+# ======================================================
+# Tracer l’activité (general log et log d’erreurs)
+# ======================================================
+# Log de toutes les requêtes
+general_log_file = /var/log/mysql/mysql.log
+general_log = 1 # 0 = désactivé, 1 = activé
+log_output = FILE
+
+log-error = /var/log/mysql/error.log
+
+# Niveau de log des warnings et erreurs
+# ⚠️ "log_error_verbosity" est à supprimer à partir de MariaDB 11.x, provoque une erreur => remplacé par "log_warnings"
+# log_error_verbosity = 3  # 0 = désactivé, 1 = erreurs, 2 = erreurs + warnings, 3 = erreurs + warnings + info détaillées
+log_warnings = 2         # 0 = désactivé, 1 = normal, 2 = détaillé
+
+# ======================================================
+# Requêtes lentes et sans index
+# ======================================================
+# Log des requêtes lentes
+slow_query_log_file = /var/log/mysql/mysql-slow.log
+slow_query_log = 1  # 0 = désactivé, 1 = activé
+long_query_time = 0.1 # En secondes (0.1 = 100ms)
+
+# Filtre pour les requêtes lentes
+log_slow_filter = all
+# Options possibles pour "log_slow_filter" :
+#   admin = requêtes d'administration (ALTER TABLE, OPTIMIZE TABLE, etc.)
+#   all = toutes les requêtes lentes (y compris admin)
+
+# Log des requêtes qui n’utilisent pas d’index
+# Sert à identifier les requêtes mal optimisées car la base de données doit scanner toutes les lignes de la table pour répondre à la requête.
+# Logger dans le fichier paramétré par "slow_query_log_file" avec 'No index used' mentionné
+log_queries_not_using_indexes = 1   # 0 = désactivé, 1 = activé
+
+# ======================================================
+# Optimisations InnoDB et vitesse des écritures
+# ======================================================
+# innodb_flush_method = O_DIRECT        # ⚠️ Déprécié à partir de MariaDB 11.0
+# Alternatives à "innodb_flush_method" pour MariaDB 11.x (4 options possibles) :
+innodb_log_file_buffering = ON        # Met les logs de transaction en mémoire avant d’écrire sur le disque (meilleure performance)
+innodb_data_file_buffering = ON       # Met les pages de données en mémoire avant d’écrire sur le disque (meilleure performance)
+innodb_log_file_write_through = OFF   # N’écrit pas immédiatement les logs sur disque (autorise le buffering)
+innodb_data_file_write_through = OFF  # N’écrit pas immédiatement les données sur disque (autorise le buffering)
+
+innodb_flush_log_at_trx_commit = 2 
+sync_binlog = 0                       # 0 = désactivé, 1 = à chaque transaction, 2 = à chaque seconde
+# innodb_file_per_table = 1             # ⚠️ Déprécié à partir de MariaDB 11.0.1, c'est activé par défaut
+
+# ======================================================
+# Mode SQL
+# ======================================================
+# Mode strict pour éviter les erreurs silencieuses et forcer le respect des contraintes
+# Ce mode est légèrement plus strict au serveur de prod pour s'assurer que les nouvelles requêtes respectent la rétrocompatibilité et garantir la validité.
+# Voir documentation : https://mariadb.com/kb/en/sql-mode/
+sql_mode = STRICT_ALL_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE
+innodb_strict_mode = ON

@@ -1,0 +1,63 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Sublime Text     #
+####################
+*.sublime-project
+*.sublime-workspace
+
+# Netbeans metadata files #
+###########################
+nbproject/*
+/catalog.xml
+
+# JetBrains #
+#############
+.idea/*
+
+# Codekit #
+###########
+*.codekit
+
+# Ruby #
+########
+.ruby-version
+
+# Vim #
+#######
+.viminfo
+.netrwhist
+
+# Terraform #
+#############
+.tfstate
+.terraform/
+
+# Project #
+###########
+vendor/
+composer.phar
+
+# Packages #
+###########
+*.deb
+
+# NPM #
+#######
+node_modules/
+package-lock.json
+
+# Docker #
+#######
+docker-compose.override.yml
+
+# Custom Github Action need to have the directory "node_modules" commited
+!.github/actions/*/node_modules
+!.github/actions/*/package-lock.json
