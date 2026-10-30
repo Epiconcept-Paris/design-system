@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    OI-1280 - Project theme (style resource, type stl).
+    Same structure as the core template src/resources/template/style.xml: these are the
+    design tokens the core uses to generate its CSS (Color(N) scales, font family, size).
+    Main colour unchanged (#4bcddb = brand light blue); font = Source Sans 3, the
+    "police fonctionnelle" of the brand guidelines (gap rated "Majeur" in ref-charte_graphique.md).
+    Quoted: an unquoted font name containing "3" is invalid CSS.
+    The font files are self-hosted (public/fonts), declared in the project stylesheet.
+-->
+<style>
+    <color>
+        <main>#4bcddb</main>
+        <black></black>
+        <white></white>
+        <error></error>
+        <alert></alert>
+        <warning></warning>
+        <notice></notice>
+        <info></info>
+    </color>
+    <font>
+        <family>'Source Sans 3',Helvetica,Arial,Verdana,Sans-serif</family>
+        <size>14px</size>
+    </font>
+</style>

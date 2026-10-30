@@ -1,0 +1,206 @@
+<?php
+/**
+ * OI-1280 - Project stylesheet (core hook: style/index/index/name/<project name>).
+ *
+ * Loaded after the core CSS. Brings the core widgets closer to the Voo4 Design System
+ * (Claude Design mockup "Saisie patient") without importing the mockup's CSS:
+ * every colour comes from the core tokens ($oStyle->Color(N), N < 0 = darker shades,
+ * the mockup's --color-nN), the font from the project style resource (font family token).
+ */
+$oStyle = $this->oStyle;
+$sFontsUrl = rtrim(Core_Library_Options::get('voozanoo.baseurl'), '/') . '/fonts/source-sans-3/';
+?>
+/* Source Sans 3 (SIL OFL), self-hosted: no call to an external CDN */
+<?php foreach (array(400, 600, 700) as $iWeight): ?>
+@font-face {
+font-family: 'Source Sans 3';
+font-style: normal;
+font-weight: <?php echo $iWeight ?>;
+font-display: swap;
+src: url('<?php echo $sFontsUrl ?>source-sans-3-latin-<?php echo $iWeight ?>-normal.woff2') format('woff2');
+}
+<?php endforeach; ?>
+
+/* Labels: semibold, as in the DS (--fw-semibold) */
+label.control-label {
+font-weight: 600;
+color: #333;
+}
+
+/* Groups (WidgetGroup = Bootstrap panel): title shown as a legend on the border
+   instead of a filled heading bar */
+#page .panel {
+position: relative;
+margin-top: 26px;
+border-color: <?php echo $oStyle->Color(0) ?>;
+border-radius: 6px;
+background-color: <?php echo $oStyle->Color(10) ?>;
+}
+#page .panel > .panel-heading {
+position: absolute;
+top: -16px;
+left: 22px;
+padding: 2px 14px;
+background: <?php echo $oStyle->Color(10) ?>;
+border: 1px solid <?php echo $oStyle->Color(0) ?>;
+border-radius: 4px;
+}
+#page .panel > .panel-heading .panel-title {
+font-size: 120%;
+font-weight: 700;
+color: <?php echo $oStyle->Color(-6) ?>;
+}
+#page .panel > .panel-body {
+padding-top: 28px;
+}
+
+/* Side-by-side groups of the same height (form box class="ds-equal-height"):
+   the columns become flex items stretched to the tallest one */
+.ds-equal-height {
+display: flex;
+flex-wrap: wrap;
+}
+.ds-equal-height > .vzn-box {
+display: flex;
+flex-direction: column;
+}
+.ds-equal-height > .vzn-box > .panel {
+flex: 1;
+}
+@media (max-width: 991px) {
+.ds-equal-height > .vzn-box {
+width: 100%;
+}
+}
+
+/* WidgetBoolean (3-state switch, core CSS): state text next to it, as in the DS */
+div:has(> label.toggle-label-null),
+div:has(> label.toggle-label-true),
+div:has(> label.toggle-label-false) {
+display: flex;
+align-items: center;
+}
+div:has(> label.toggle-label-null)::after,
+div:has(> label.toggle-label-true)::after,
+div:has(> label.toggle-label-false)::after {
+display: inline-block;
+vertical-align: middle;
+margin-left: 10px;
+color: #333;
+}
+div:has(> label.toggle-label-null)::after {
+content: "Non renseigné";
+font-style: italic;
+color: #7a8a8d;
+}
+div:has(> label.toggle-label-true)::after { content: "Oui"; }
+div:has(> label.toggle-label-false)::after { content: "Non"; }
+
+/* List header: "N patients enregistrés" on the left, "Nouveau patient" on the right */
+#page .list-header {
+display: flex;
+align-items: center;
+margin: 10px 0 14px;
+}
+#page .list-header > * {
+float: none;
+width: auto;
+padding-left: 0;
+padding-right: 0;
+}
+#page .list-header > :last-child {
+margin-left: auto;
+}
+#page .list-count {
+margin-right: 8px;
+}
+#page .list-count-label {
+font-size: 16px;
+font-weight: 700;
+color: <?php echo $oStyle->Color(-6) ?>;
+}
+
+/* Badge (application widget WidgetBadge, Design System "Badge" component).
+   Sizes in em: they follow the font size token (spec: 11px / 12px at 14px).
+   Variants success, warning, danger, info use the Bootstrap 3 classes alert-* */
+.vzn-badge {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+font-weight: 700;
+line-height: 1;
+white-space: nowrap;
+vertical-align: middle;
+border: 1px solid;
+border-radius: 10px;
+font-variant-numeric: tabular-nums;
+}
+.vzn-badge-sm {
+font-size: 0.786em;
+min-width: 18px;
+height: 18px;
+padding: 0 5px;
+}
+.vzn-badge-md {
+font-size: 0.857em;
+min-width: 22px;
+height: 22px;
+padding: 0 7px;
+}
+.vzn-badge-primary {
+background-color: <?php echo $oStyle->Color(8) ?>;
+color: <?php echo $oStyle->Color(-6) ?>;
+border-color: <?php echo $oStyle->Color(0) ?>;
+}
+.vzn-badge-neutral {
+background-color: #e7e7e7;
+color: #000;
+border-color: #ccc;
+}
+.badge-field {
+padding-top: 7px;
+}
+#page .list-header .badge-field {
+padding-top: 0;
+}
+.vzn-badge-light {
+background-color: #fff;
+color: <?php echo $oStyle->Color(-6) ?>;
+border-color: #fff;
+}
+/* Badge in a tab label: after the icon and the text */
+#page li.tab-patient-list a {
+display: inline-flex;
+align-items: center;
+white-space: nowrap;
+}
+.badge-inline {
+order: 1;
+margin-left: 8px;
+}
+
+/* Tabs (WidgetPages = YUI3 tabview): larger, bold, light background, DS icons */
+.yui3-skin-sam #page .yui3-tab .yui3-tab-label {
+padding: 10px 18px;
+font-size: 16px;
+font-weight: 700;
+color: <?php echo $oStyle->Color(-6) ?>;
+background-color: <?php echo $oStyle->Color(6) ?>;
+border-color: <?php echo $oStyle->Color(6) ?>;
+}
+.yui3-skin-sam #page .yui3-tab-selected .yui3-tab-label {
+background-color: <?php echo $oStyle->Color(0) ?>;
+}
+#page li.tab-new-patient a:before,
+#page li.tab-patient-list a:before {
+font-family: FontAwesome;
+font-weight: normal;
+margin-right: 8px;
+}
+#page li.tab-new-patient a:before { content: "\f044"; } /* fa-pencil-square-o */
+#page li.tab-patient-list a:before { content: "\f03a"; } /* fa-list */
+
+/* Listing header (WidgetListing = YUI2 DataTable): DS --table-th-bg */
+.yui-skin-sam #page .yui-dt th {
+background: <?php echo $oStyle->Color(-4) ?>;
+}

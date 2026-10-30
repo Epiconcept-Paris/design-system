@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Application migration 1.0 (OI-1280 - "Saisie patient" screen and Design System theme).
+    Same format as the core migrations (src/resources/xml_resources/migration/<version>/voozanoo4-migration.xml),
+    played by the core ScriptPlayer for every project of the instance.
+
+    Simulation (default, changes nothing, lists what would be done):
+        php resources/cron/voo4_cli.php mtd=migration path=<app>/resources/migration/1.0/app-migration.xml simulation=true
+    Execution:
+        php resources/cron/voo4_cli.php mtd=migration path=<app>/resources/migration/1.0/app-migration.xml simulation=false
+
+    Not here: the form (resources/form.demo_ds.xml) and the project stylesheet
+    (modules/style/views/scripts/index/<project>.phtml) are files read at runtime, versioned with the code.
+    No sys_context_update: the "version" context is the core version, not the application's.
+-->
+<script>
+    <actions>
+        <migration type="Comment" label="OI-1280 : dictionnaires, thème et varset patient"/>
+        <!-- Dictionaries first: the varset references them (fkey_dico / fkey_dico_ext) -->
+        <migration type="include_script" script_path="scripts/DesignSystemSetup.php"
+                   classname="App_Migration_1_0_DesignSystemSetup" impacted_resources="Dico, Style"
+                   label="Dictionnaires sexe, langues, pays et thème du projet (police Source Sans 3)"/>
+        <!-- Creates the varset from models/varset.patient.xml if missing (tables included);
+             on an existing varset, only appends the variables it lacks -->
+        <migration type="varset_update_diff" varset_name="patient" create_missing_varset="true"
+                   label="Varset patient (écran Saisie patient)"/>
+    </actions>
+</script>

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    OI-1280 - "Saisie patient" screen.
+    Spec: Claude Design mockup "Patient entry form demo/Saisie Patient.html" (layout and
+    behaviour only: no HTML/CSS imported, everything is rendered by core Voo4 widgets).
+-->
+<form id="demo_ds">
+    <config>
+        <display_path>form/frame/get</display_path>
+        <frame_js_class_name>FrameForm</frame_js_class_name>
+    </config>
+    <!-- Dataquery on the "patient" varset ({pj} = project tables prefix).
+         Loads the record given by the id_data URL param; none (0) = new record. -->
+    <data_structure>
+        <dataquery id="patient" table_name="{pj}_patient_data" varset_name="patient" table_alias="p">
+            <column_simple field_name="id_data" table_name="p"/>
+            <column_simple field_name="prenom" table_name="p"/>
+            <column_simple field_name="nom" table_name="p"/>
+            <column_simple field_name="nom_usuel" table_name="p"/>
+            <column_simple field_name="ddn" table_name="p"/>
+            <column_simple field_name="sexe" table_name="p"/>
+            <!-- fkey_dico_ext: values read from the link table by the core, not by the SQL select -->
+            <column_simple field_name="langues" table_name="p"/>
+            <column_simple field_name="adresse" table_name="p"/>
+            <column_simple field_name="cp" table_name="p"/>
+            <column_simple field_name="ville" table_name="p"/>
+            <column_simple field_name="pays" table_name="p"/>
+            <column_simple field_name="tel" table_name="p"/>
+            <column_simple field_name="email" table_name="p"/>
+            <column_simple field_name="commentaire" table_name="p"/>
+            <column_simple field_name="deces" table_name="p"/>
+            <column_simple field_name="dod" table_name="p"/>
+            <condition sql="{id_data}={param_id}">
+                <field field_name="id_data" table_name="p" alias="id_data"/>
+                <variable alias="param_id" default="0">
+                    <entry type="param" name="id_data"/>
+                </variable>
+            </condition>
+        </dataquery>
+
+        <!-- All patients, read only, for the "Liste des patients" tab (paginated: 20 per page) -->
+        <dataquery id="patients" table_name="{pj}_patient_data" varset_name="patient" table_alias="l"
+                   begin="0" range="20" mode="r">
+            <column_simple field_name="id_data" table_name="l"/>
+            <column_simple field_name="nom" table_name="l"/>
+            <column_simple field_name="nom_usuel" table_name="l"/>
+            <column_simple field_name="prenom" table_name="l"/>
+            <column_simple field_name="ddn" table_name="l"/>
+            <column_simple field_name="sexe" table_name="l"/>
+            <column_simple field_name="ville" table_name="l"/>
+            <column_simple field_name="deces" table_name="l"/>
+            <column_simple field_name="dod" table_name="l"/>
+        </dataquery>
+
+        <!-- Number of patients for the list header (same rights filter as the list: varset_name) -->
+        <dataquery id="patients_count" table_name="{pj}_patient_data" varset_name="patient" table_alias="c" mode="r">
+            <column sql="COUNT({id})" alias="nb" type="integer">
+                <field field_name="id_data" table_name="c" alias="id"/>
+            </column>
+        </dataquery>
+    </data_structure>
+
+    <layout title="Saisie patient" disabled="false">
+        <!-- WidgetPages: the two tabs of the mockup -->
+        <pages>
+            <page title="Nouveau patient" class="tab-new-patient">
+
+                <!-- Mockup grid: Identité | Coordonnées side by side, Informations complémentaires full width.
+                     A group's class only applies to its content, so each group sits in a <box>
+                     (WidgetBox) that carries the Bootstrap column class.
+                     In each row: label 4/12 (mockup: 30 %), value 8/12. -->
+                <!-- Same height for both sections (as in the mockup): class used by the project stylesheet -->
+                <box class="ds-equal-height">
+                    <box class="col-md-6">
+                        <group title="Identité">
+                            <form_row>
+                                <label dataset="patient" field="prenom" class="text-right col-md-4"/>
+                                <value dataset="patient" field="prenom" mode="rw" class="col-md-8"/>
+                            </form_row>
+                            <form_row>
+                                <label dataset="patient" field="nom" class="text-right col-md-4"/>
+                                <value dataset="patient" field="nom" mode="rw" class="col-md-8"/>
+                            </form_row>
+                            <form_row>
+                                <label dataset="patient" field="nom_usuel" class="text-right col-md-4"/>
+                                <value dataset="patient" field="nom_usuel" mode="rw" class="col-md-8"/>
+                            </form_row>
+                            <form_row>
+                                <!-- WidgetField: placeholder prop -->
+                                <label dataset="patient" field="ddn" class="text-right col-md-4"/>
+                                <value dataset="patient" field="ddn" mode="rw" class="col-md-8" placeholder="JJ/MM/AAAA"/>
+                            </form_row>
+                            <form_row>
+                                <!-- Dictionary: WidgetRadioGroup by default; columns_count prop (2 columns as in the mockup) -->
+                                <label dataset="patient" field="sexe" class="text-right col-md-4"/>
+                                <value dataset="patient" field="sexe" mode="rw" class="col-md-8">
+                                    <option output="html" option_name="columns_count" value="2"/>
+                                </value>
+                            </form_row>
+                            <form_row>
+                                <!-- Multiple dictionary (fkey_dico_ext): WidgetCheckboxGroup, 2 columns -->
+                                <label dataset="patient" field="langues" class="text-right col-md-4"/>
+                                <value dataset="patient" field="langues" mode="rw" class="col-md-7">
+                                    <option output="html" option_name="columns_count" value="2"/>
+                                </value>
+                                <!-- WidgetBadge (application widget, Design System "Badge"): number of
+                                     languages ticked, updated live, hidden while none is ticked -->
+                                <value dataset="patient" field="langues" mode="r" class="col-md-1">
+                                    <option output="html" option_name="widget" value="WidgetBadge"/>
+                                    <option output="html" option_name="display" value="count"/>
+                                    <option output="html" option_name="size" value="sm"/>
+                                    <option output="html" option_name="hide_if_zero" value="true"/>
+                                </value>
+                            </form_row>
+                        </group>
+                    </box>
+
+                    <box class="col-md-6">
+                        <group title="Coordonnées">
+                            <form_row>
+                                <label dataset="patient" field="adresse" class="text-right col-md-4"/>
+                                <value dataset="patient" field="adresse" mode="rw" class="col-md-8"/>
+                            </form_row>
+                            <form_row>
+                                <!-- Narrow input, as in the mockup -->
+                                <label dataset="patient" field="cp" class="text-right col-md-4"/>
+                                <value dataset="patient" field="cp" mode="rw" class="col-md-3"/>
+                            </form_row>
+                            <form_row>
+                                <label dataset="patient" field="ville" class="text-right col-md-4"/>
+                                <value dataset="patient" field="ville" mode="rw" class="col-md-8"/>
+                            </form_row>
+                            <form_row>
+                                <!-- widget prop: forces a select instead of the default radio group -->
+                                <label dataset="patient" field="pays" class="text-right col-md-4"/>
+                                <value dataset="patient" field="pays" mode="rw" class="col-md-8">
+                                    <option output="html" option_name="widget" value="WidgetSelect"/>
+                                </value>
+                            </form_row>
+                            <form_row>
+                                <!-- size: the core sets an inline width on fields shorter than 50 characters
+                                     (tel = 20); size="50" lets the input fill its column (attribute used by the
+                                     core's own XML, e.g. listing.ucrights.xml, although missing from LayoutType.xsd) -->
+                                <label dataset="patient" field="tel" class="text-right col-md-4"/>
+                                <value dataset="patient" field="tel" mode="rw" class="col-md-8" size="50" placeholder="06 12 34 56 78"/>
+                            </form_row>
+                            <form_row>
+                                <label dataset="patient" field="email" class="text-right col-md-4"/>
+                                <value dataset="patient" field="email" mode="rw" class="col-md-8" placeholder="nom@exemple.fr"/>
+                            </form_row>
+                        </group>
+                    </box>
+                </box>
+
+                <box class="col-md-12">
+                    <!-- Full width: label 2/12 (mockup: 15 %), value 10/12 -->
+                    <group title="Informations complémentaires">
+                        <form_row>
+                            <!-- widget prop: a string field is a one-line WidgetField by default; WidgetText = textarea -->
+                            <label dataset="patient" field="commentaire" class="text-right col-md-2"/>
+                            <value dataset="patient" field="commentaire" mode="rw" class="col-md-10">
+                                <option output="html" option_name="widget" value="WidgetText"/>
+                                <option output="html" option_name="rows" value="4"/>
+                            </value>
+                        </form_row>
+                        <form_row>
+                            <!-- WidgetBoolean = the 3-state switch of the DS (official boolean component).
+                                 widget prop needed: without it, this application (use_widgetboolean off)
+                                 gets the deprecated WidgetToggle "Ø" button. can_be_null = "non renseigné" state -->
+                            <label dataset="patient" field="deces" class="text-right col-md-2"/>
+                            <value dataset="patient" field="deces" mode="rw" class="col-md-10">
+                                <option output="html" option_name="widget" value="WidgetBoolean"/>
+                                <option output="html" option_name="can_be_null" value="true"/>
+                            </value>
+                        </form_row>
+                        <form_row>
+                            <!-- show_on: only displayed when the patient is deceased;
+                                 on_hide_data_handle=reset: the date is cleared when hidden again -->
+                            <option output="html" option_name="show_on" value="( {patient.deces} &amp; 1 ) == 1"/>
+                            <option output="html" option_name="on_hide_data_handle" value="reset"/>
+                            <label dataset="patient" field="dod" class="text-right col-md-2"/>
+                            <value dataset="patient" field="dod" mode="rw" class="col-md-4" placeholder="JJ/MM/AAAA"/>
+                        </form_row>
+                    </group>
+                </box>
+
+                <!-- In a box too: a non-floating group after the floating boxes would sit behind them -->
+                <box class="col-md-12">
+                    <!-- WidgetButton: Annuler on the left (default style), Enregistrer on the right (primary) -->
+                    <group id="button-group">
+                        <!-- transparent_group prop: no frame around the buttons, as in the mockup -->
+                        <option output="html" option_name="transparent_group" value="true"/>
+                        <button action="exit" label="Annuler"/>
+                        <!-- No save_path in <config>: saves through the core's generic form/frame/save.
+                             dataset: only the patient record is sent (not the read-only list datasets).
+                             redirection, played once the save succeeded: reloads this form without id_data,
+                             so the form is empty again and the list and its count are reloaded -->
+                        <button action="save" id="save" label="Enregistrer" class="btn-primary pull-right" dataset="patient">
+                            <option output="html" option_name="fa" value="fa-floppy-o"/>
+                            <redirection url="form/frame/get/file/form.demo_ds" type="frame"/>
+                        </button>
+                    </group>
+                </box>
+            </page>
+
+            <!-- WidgetListing: double-click on a row (or Action > Open) reopens this form on
+                 that record (id_data param); Action > Delete asks for confirmation -->
+            <page title="Liste des patients" class="tab-patient-list">
+                <!-- Header of the mockup: "N patients enregistrés" + "Nouveau patient" button -->
+                <group id="list-header">
+                    <option output="html" option_name="transparent_group" value="true"/>
+                    <!-- list-header: flex row in the project stylesheet -->
+                    <form_row class="list-header">
+                        <!-- WidgetBadge: number of patients -->
+                        <value dataset="patients_count" field="nb" mode="r" class="list-count">
+                            <option output="html" option_name="widget" value="WidgetBadge"/>
+                        </value>
+                        <statictext class="list-count-label">patients enregistrés</statictext>
+                        <!-- type="frame": reloads this form without id_data = new record -->
+                        <button action="exit" label="Nouveau patient" class="btn-primary">
+                            <option output="html" option_name="fa" value="fa-plus"/>
+                            <redirection url="form/frame/get/file/form.demo_ds" type="frame"/>
+                        </button>
+                    </form_row>
+                </group>
+                <listing id="listing_patients" dataset="patients" mode="r">
+                    <options>
+                        <option output="html" option_name="rows_per_page" value="20"/>
+                        <!-- count shown in the header above (patients_count), as in the mockup -->
+                        <option output="html" option_name="show_total_rows" value="false"/>
+                        <option output="html" option_name="edit_form_uri" value="form/frame/get/file/form.demo_ds"/>
+                        <option output="html" option_name="edit_param_name" value="id_data"/>
+                        <option output="html" option_name="edit_param_field" value="id_data"/>
+                    </options>
+                    <columns>
+                        <column field="nom" mode="r" title="Nom"/>
+                        <column field="prenom" mode="r" title="Prénom"/>
+                        <column field="ddn" mode="r" title="Date de naissance"/>
+                        <column field="sexe" mode="r" title="Sexe"/>
+                        <column field="ville" mode="r" title="Ville"/>
+                        <column field="deces" mode="r" title="Décédé"/>
+                    </columns>
+                </listing>
+            </page>
+        </pages>
+
+        <!-- WidgetBadge in the "Liste des patients" tab label (as in the mockup): a tab title is
+             fixed text, so the badge is rendered into the tab with target_selector. Declared after
+             <pages> so the tabs exist when it renders -->
+        <value dataset="patients_count" field="nb" mode="r">
+            <option output="html" option_name="widget" value="WidgetBadge"/>
+            <option output="html" option_name="target_selector" value="li.tab-patient-list > a"/>
+            <option output="html" option_name="variant" value="light"/>
+            <option output="html" option_name="size" value="sm"/>
+        </value>
+    </layout>
+</form>
