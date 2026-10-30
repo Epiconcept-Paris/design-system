@@ -94,10 +94,13 @@ class App_Migration_1_0_DesignSystemSetup
             }
         }
 
-        // Varset API: also writes the rights rows (_data_group) and the audit trail
-        $oProject
-            ->GetVarSet(Core_Library_Model_Dico_Manager::DEFAULT_DICO_VARSET_NAME)
-            ->InsertMultipleData($aNewValues);
+        // Nothing to insert when every value already exists (migration re-run)
+        if (!empty($aNewValues)) {
+            // Varset API: also writes the rights rows (_data_group) and the audit trail
+            $oProject
+                ->GetVarSet(Core_Library_Model_Dico_Manager::DEFAULT_DICO_VARSET_NAME)
+                ->InsertMultipleData($aNewValues);
+        }
     }
 
     /**
