@@ -112,15 +112,71 @@ padding-right: 0;
 margin-left: auto;
 }
 #page .list-count {
-margin-right: 6px;
-font-size: 22px;
-font-weight: 700;
-color: <?php echo $oStyle->Color(-6) ?>;
+margin-right: 8px;
 }
 #page .list-count-label {
 font-size: 16px;
 font-weight: 700;
 color: <?php echo $oStyle->Color(-6) ?>;
+}
+
+/* Badge (application widget WidgetBadge, Design System "Badge" component).
+   Sizes in em: they follow the font size token (spec: 11px / 12px at 14px).
+   Variants success, warning, danger, info use the Bootstrap 3 classes alert-* */
+.vzn-badge {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+font-weight: 700;
+line-height: 1;
+white-space: nowrap;
+vertical-align: middle;
+border: 1px solid;
+border-radius: 10px;
+font-variant-numeric: tabular-nums;
+}
+.vzn-badge-sm {
+font-size: 0.786em;
+min-width: 18px;
+height: 18px;
+padding: 0 5px;
+}
+.vzn-badge-md {
+font-size: 0.857em;
+min-width: 22px;
+height: 22px;
+padding: 0 7px;
+}
+.vzn-badge-primary {
+background-color: <?php echo $oStyle->Color(8) ?>;
+color: <?php echo $oStyle->Color(-6) ?>;
+border-color: <?php echo $oStyle->Color(0) ?>;
+}
+.vzn-badge-neutral {
+background-color: #e7e7e7;
+color: #000;
+border-color: #ccc;
+}
+.badge-field {
+padding-top: 7px;
+}
+#page .list-header .badge-field {
+padding-top: 0;
+}
+.vzn-badge-light {
+background-color: #fff;
+color: <?php echo $oStyle->Color(-6) ?>;
+border-color: #fff;
+}
+/* Badge in a tab label: after the icon and the text */
+#page li.tab-patient-list a {
+display: inline-flex;
+align-items: center;
+white-space: nowrap;
+}
+.badge-inline {
+order: 1;
+margin-left: 8px;
 }
 
 /* Tabs (WidgetPages = YUI3 tabview): larger, bold, light background, DS icons */

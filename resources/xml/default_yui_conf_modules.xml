@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <modules>
+    <!-- Design System "Badge" component (OI-1281) -->
+    <module name="widgetbadge" path="frame/layout/widget/widgetbadge.js">
+        <require>widgetreadonly</require>
+    </module>
 <!--    <module name="widgetsample" path="frame/layout/widget/widgetsample.js">
         <require>widgetfield</require>
     </module>-->

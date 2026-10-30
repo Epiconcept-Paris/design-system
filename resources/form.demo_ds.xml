@@ -100,8 +100,16 @@
                             <form_row>
                                 <!-- Multiple dictionary (fkey_dico_ext): WidgetCheckboxGroup, 2 columns -->
                                 <label dataset="patient" field="langues" class="text-right col-md-4"/>
-                                <value dataset="patient" field="langues" mode="rw" class="col-md-8">
+                                <value dataset="patient" field="langues" mode="rw" class="col-md-7">
                                     <option output="html" option_name="columns_count" value="2"/>
+                                </value>
+                                <!-- WidgetBadge (application widget, Design System "Badge"): number of
+                                     languages ticked, updated live, hidden while none is ticked -->
+                                <value dataset="patient" field="langues" mode="r" class="col-md-1">
+                                    <option output="html" option_name="widget" value="WidgetBadge"/>
+                                    <option output="html" option_name="display" value="count"/>
+                                    <option output="html" option_name="size" value="sm"/>
+                                    <option output="html" option_name="hide_if_zero" value="true"/>
                                 </value>
                             </form_row>
                         </group>
@@ -203,7 +211,10 @@
                     <option output="html" option_name="transparent_group" value="true"/>
                     <!-- list-header: flex row in the project stylesheet -->
                     <form_row class="list-header">
-                        <value dataset="patients_count" field="nb" mode="r" class="list-count"/>
+                        <!-- WidgetBadge: number of patients -->
+                        <value dataset="patients_count" field="nb" mode="r" class="list-count">
+                            <option output="html" option_name="widget" value="WidgetBadge"/>
+                        </value>
                         <statictext class="list-count-label">patients enregistrés</statictext>
                         <!-- type="frame": reloads this form without id_data = new record -->
                         <button action="exit" label="Nouveau patient" class="btn-primary">
@@ -232,5 +243,15 @@
                 </listing>
             </page>
         </pages>
+
+        <!-- WidgetBadge in the "Liste des patients" tab label (as in the mockup): a tab title is
+             fixed text, so the badge is rendered into the tab with target_selector. Declared after
+             <pages> so the tabs exist when it renders -->
+        <value dataset="patients_count" field="nb" mode="r">
+            <option output="html" option_name="widget" value="WidgetBadge"/>
+            <option output="html" option_name="target_selector" value="li.tab-patient-list > a"/>
+            <option output="html" option_name="variant" value="light"/>
+            <option output="html" option_name="size" value="sm"/>
+        </value>
     </layout>
 </form>
